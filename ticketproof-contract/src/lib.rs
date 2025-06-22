@@ -88,32 +88,35 @@ impl TicketContract {
     }
 
     pub fn buy_ticket(env: Env, event_id: u32, buyer: Address, payment: i128) {
-        let key = DataKey::Event(event_id);
-        let mut event: Event = env
-            .storage()
-            .persistent()
-            .get(&key)
-            .expect("event not found");
+    buyer.require_auth(); // ✅ Authorize buyer
 
-        if event.sold >= event.max_tickets {
-            panic!("Sold out");
-        }
+    let key = DataKey::Event(event_id);
+    let mut event: Event = env
+        .storage()
+        .persistent()
+        .get(&key)
+        .expect("event not found");
 
-        if payment < event.price {
-            panic!("Insufficient payment");
-        }
-
-        let ticket_id = event.sold;
-        event.sold += 1;
-        env.storage().persistent().set(&key, &event);
-
-        let ticket_key = DataKey::Ticket(buyer.clone(), ticket_id);
-        let ticket = Ticket {
-            used: false,
-            event_id,
-        };
-        env.storage().persistent().set(&ticket_key, &ticket);
+    if event.sold >= event.max_tickets {
+        panic!("Sold out");
     }
+
+    if payment < event.price {
+        panic!("Insufficient payment");
+    }
+
+    let ticket_id = event.sold;
+    event.sold += 1;
+    env.storage().persistent().set(&key, &event);
+
+    let ticket_key = DataKey::Ticket(buyer.clone(), ticket_id);
+    let ticket = Ticket {
+        used: false,
+        event_id,
+    };
+    env.storage().persistent().set(&ticket_key, &ticket);
+}
+
 
     pub fn get_tickets_by_owner(env: Env, owner: Address) -> Vec<u32> {
         let mut tickets = Vec::new(&env);

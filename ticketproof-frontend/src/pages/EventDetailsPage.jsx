@@ -40,9 +40,9 @@ const EventDetailsPage = () => {
   const handleBuyTickets = async () => {
   try {
     const txResult = await buyTickets({
-      eventId: event.id,
+      eventId: 1,
       quantity: ticketQuantity,
-      totalPrice: event.price/10000000 * ticketQuantity
+      totalPrice: event.price * ticketQuantity
     });
 
     alert(`Success! Hash: ${txResult.hash}`);
